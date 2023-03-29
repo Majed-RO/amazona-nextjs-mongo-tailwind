@@ -1,10 +1,13 @@
 'use client';
 import { Product } from '@/utils/interfaces';
 import { Store } from '@/utils/store';
+import { useRouter } from 'next/navigation';
 import React, { useContext } from 'react';
 
 export default function AddToCart({ product }: { product: Product }) {
 	const { state, dispatch } = useContext(Store);
+
+  const router = useRouter();
 
 	const addToCartHandler = () => {
 		const existItem = state.cart.cartItems.find(
@@ -20,6 +23,7 @@ export default function AddToCart({ product }: { product: Product }) {
 			type: 'CART_ADD_ITEM',
 			payload: { ...product, quantity }
 		});
+    router.push("/cart")
 	};
 	return (
 		<button

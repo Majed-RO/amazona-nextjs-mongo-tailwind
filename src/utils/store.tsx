@@ -1,20 +1,19 @@
 'use client';
 
 import { createContext, useReducer } from 'react';
+import { Product } from './interfaces';
 
-interface cartItem {
-	name: string;
-	slug: string;
+interface CartItem extends Product {
 	quantity: number;
 }
 
 interface InitialStateType {
-	cart: { cartItems: cartItem[] };
+	cart: { cartItems: CartItem[] };
 }
 
 interface Action {
-	type: 'CART_ADD_ITEM';
-	payload: cartItem;
+	type: string;
+	payload: CartItem;
 }
 
 const initialState = {
@@ -28,7 +27,7 @@ export const Store = createContext<{
 
 function reducer(state: InitialStateType, action: Action) {
 	switch (action.type) {
-		case 'CART_ADD_ITEM':
+		case 'CART_ADD_ITEM': {
 			const newItem = action.payload;
 			const existItem = state.cart.cartItems.find(
 				item => item.slug === newItem.slug
@@ -43,7 +42,15 @@ function reducer(state: InitialStateType, action: Action) {
 				: [...state.cart.cartItems, newItem];
 
 			return { ...state, cart: { ...state.cart, cartItems } };
+		}
 
+		case 'CART_REMOVE_ITEM': {
+			const cartItems = state.cart.cartItems.filter(
+				item => item.slug !== action.payload.slug
+			);
+			return { ...state, cart: { ...state.cart, cartItems } };
+
+		}
 		default:
 			return state;
 	}
