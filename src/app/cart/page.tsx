@@ -3,11 +3,12 @@
 import { CartItem, Store } from '@/utils/store';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { XCircleIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
+// import dynamic from 'next/dynamic';
 
-export default function CartScreen() {
+function CartScreen() {
 	const { state, dispatch } = useContext(Store);
 
 	const router = useRouter();
@@ -16,19 +17,29 @@ export default function CartScreen() {
 		cart: { cartItems }
 	} = state;
 
+  const [updatedCartItems, setUpdatedCartItems] = useState<CartItem[]>([]);
+
 	const removeItemHandler = (item: CartItem) => {
 		dispatch({ type: 'CART_REMOVE_ITEM', payload: item });
 	};
 
-  const updateCartHandler = (item: CartItem, qty: string) => {
-    const quantity = Number(qty);
-    dispatch({type: 'CART_ADD_ITEM', payload: {...item, quantity}})
-  }
+	const updateCartHandler = (item: CartItem, qty: string) => {
+		const quantity = Number(qty);
+		dispatch({
+			type: 'CART_ADD_ITEM',
+			payload: { ...item, quantity }
+		});
+	};
+
+  /* to solve hydration errors */
+  useEffect(() => {
+    setUpdatedCartItems(cartItems)
+  }, [cartItems]);
 
 	return (
 		<div>
 			<h1 className="mb-4 text-xl">Shopping Cart</h1>
-			{cartItems.length === 0 ? (
+			{updatedCartItems.length === 0 ? (
 				<div>
 					Cart is empty.{' '}
 					<Link href={'/'}>Go shopping</Link>
@@ -54,7 +65,7 @@ export default function CartScreen() {
 								</tr>
 							</thead>
 							<tbody>
-								{cartItems.map(
+								{updatedCartItems.map(
 									item => (
 										<tr
 											key={
@@ -89,29 +100,41 @@ export default function CartScreen() {
 												</Link>
 											</td>
 											<td className="p-5 text-right">
-                        <select value={item.quantity} onChange={(e)=> updateCartHandler(item, e.target.value)}>
-												{[
-													...Array(
-														item.countInStock
-													).keys()
-												].map(
-													x => (
-														<option
-															key={
-																x +
-																1
-															}
-															value={
-																x +
-																1
-															}
-														>
-															{x +
-																1}
-														</option>
-													)
-												)}
-                        </select>
+												<select
+													value={
+														item.quantity
+													}
+													onChange={e =>
+														updateCartHandler(
+															item,
+															e
+																.target
+																.value
+														)
+													}
+												>
+													{[
+														...Array(
+															item.countInStock
+														).keys()
+													].map(
+														x => (
+															<option
+																key={
+																	x +
+																	1
+																}
+																value={
+																	x +
+																	1
+																}
+															>
+																{x +
+																	1}
+															</option>
+														)
+													)}
+												</select>
 											</td>
 											<td className="p-5 text-right">
 												$
@@ -142,7 +165,7 @@ export default function CartScreen() {
 								<div className="pb-3 text-xl">
 									Subtotal
 									({' '}
-									{cartItems.reduce(
+									{updatedCartItems.reduce(
 										(
 											a,
 											c
@@ -152,7 +175,7 @@ export default function CartScreen() {
 										0
 									)}{' '}
 									) : $
-									{cartItems.reduce(
+									{updatedCartItems.reduce(
 										(
 											a,
 											c
@@ -184,3 +207,8 @@ export default function CartScreen() {
 		</div>
 	);
 }
+
+/* export default dynamic(() => Promise.resolve(CartScreen), {
+	ssr: false
+}); */
+export default CartScreen;

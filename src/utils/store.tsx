@@ -2,6 +2,7 @@
 
 import { createContext, useReducer } from 'react';
 import { Product } from './interfaces';
+import Cookies from 'js-cookie';
 
 export interface CartItem extends Product {
 	quantity: number;
@@ -17,7 +18,9 @@ interface Action {
 }
 
 const initialState = {
-	cart: { cartItems: [] }
+	cart: Cookies.get('cart')
+		? JSON.parse(Cookies.get('cart') ?? '')
+		: { cartItems: [] }
 };
 
 export const Store = createContext<{
@@ -40,7 +43,10 @@ function reducer(state: InitialStateType, action: Action) {
 							: item
 				  )
 				: [...state.cart.cartItems, newItem];
-
+			Cookies.set(
+				'cart',
+				JSON.stringify({ ...state.cart, cartItems })
+			);
 			return { ...state, cart: { ...state.cart, cartItems } };
 		}
 
@@ -48,8 +54,11 @@ function reducer(state: InitialStateType, action: Action) {
 			const cartItems = state.cart.cartItems.filter(
 				item => item.slug !== action.payload.slug
 			);
+      Cookies.set(
+				'cart',
+				JSON.stringify({ ...state.cart, cartItems })
+			);
 			return { ...state, cart: { ...state.cart, cartItems } };
-
 		}
 		default:
 			return state;
