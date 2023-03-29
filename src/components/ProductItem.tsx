@@ -1,18 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
+import { Product } from '@/utils/interfaces';
 import Link from 'next/link';
 
-interface Product {
-	name: string;
-	slug: string;
-	category: string;
-	image: string;
-	price: number;
-	brand: string;
-	rating: number;
-	numReviews: number;
-	countInStock: number;
-	description: string;
-}
+
 export default function ProductItem({ product }: { product: Product }) {
 	return (
 		<div className="card">

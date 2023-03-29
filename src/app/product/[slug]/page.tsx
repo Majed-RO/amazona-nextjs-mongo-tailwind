@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import AddToCart from './components/AddToCart';
 
 // The `fetch` response is cached and reused between both functions
 // below, resulting in a single API request. If you cannot use `fetch`
@@ -26,7 +27,7 @@ export async function generateMetadata({
 	params: { slug: string };
 }): Promise<Metadata> {
 	const product = await getProduct(params.slug);
-	return { title: product?.name };
+	return { title: product.name };
 }
 
 export default async function ProductScreen({
@@ -90,7 +91,7 @@ export default async function ProductScreen({
 									: 'Unavailable'}
 							</div>
 						</div>
-            <button className='primary-button w-full'>Add to cart</button>
+						<AddToCart product={product} />
 					</div>
 				</div>
 			</div>

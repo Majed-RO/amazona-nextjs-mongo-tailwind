@@ -1,3 +1,5 @@
+import NavBar from '@/components/NavBar';
+import { StoreProvider } from '@/utils/store';
 import Link from 'next/link';
 import './globals.css';
 
@@ -15,36 +17,15 @@ export default function RootLayout({
 		<html lang="en">
 			<body>
 				<div className="flex min-h-screen flex-col justify-between">
+          <StoreProvider>
 					<header className=''>
-						<nav className="flex h-12 justify-between shadow items-center px-4">
-							<Link
-								href={'/'}
-								className="text-lg font-bold"
-							>
-								Amazona
-							</Link>
-							<div className="flex space-x-4">
-								<Link
-									href={
-										'/cart'
-									}
-								>
-									Cart
-								</Link>
-								<Link
-									href={
-										'/login'
-									}
-								>
-									Login
-								</Link>
-							</div>
-						</nav>
+						<NavBar />
 					</header>
 					<main className="container m-auto mt-4 px-4">
 						{children}
 					</main>
 					<footer className='flex h-10 justify-center items-center shadow-inner'><p>Copyright &#169; 2022 Amazona</p></footer>
+          </StoreProvider>
 				</div>
 			</body>
 		</html>
