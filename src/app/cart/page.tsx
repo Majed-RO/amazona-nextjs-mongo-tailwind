@@ -1,6 +1,6 @@
 'use client';
 
-import { Store } from '@/utils/store';
+import { CartItem, Store } from '@/utils/store';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useContext } from 'react';
@@ -10,15 +10,20 @@ import { useRouter } from 'next/navigation';
 export default function CartScreen() {
 	const { state, dispatch } = useContext(Store);
 
-  const router = useRouter()
+	const router = useRouter();
 
 	const {
 		cart: { cartItems }
 	} = state;
 
-	const removeItemHandler = (item: any) => {
+	const removeItemHandler = (item: CartItem) => {
 		dispatch({ type: 'CART_REMOVE_ITEM', payload: item });
 	};
+
+  const updateCartHandler = (item: CartItem, qty: string) => {
+    const quantity = Number(qty);
+    dispatch({type: 'CART_ADD_ITEM', payload: {...item, quantity}})
+  }
 
 	return (
 		<div>
@@ -84,9 +89,29 @@ export default function CartScreen() {
 												</Link>
 											</td>
 											<td className="p-5 text-right">
-												{
-													item.quantity
-												}
+                        <select value={item.quantity} onChange={(e)=> updateCartHandler(item, e.target.value)}>
+												{[
+													...Array(
+														item.countInStock
+													).keys()
+												].map(
+													x => (
+														<option
+															key={
+																x +
+																1
+															}
+															value={
+																x +
+																1
+															}
+														>
+															{x +
+																1}
+														</option>
+													)
+												)}
+                        </select>
 											</td>
 											<td className="p-5 text-right">
 												$
@@ -139,11 +164,19 @@ export default function CartScreen() {
 									)}
 								</div>
 							</li>
-              <li>
-                <button onClick={()=> router.push('/shipping')} className='primary-button w-full'>
-                      Check Out
-                </button>
-              </li>
+							<li>
+								<button
+									onClick={() =>
+										router.push(
+											'/shipping'
+										)
+									}
+									className="primary-button w-full"
+								>
+									Check
+									Out
+								</button>
+							</li>
 						</ul>
 					</div>
 				</div>

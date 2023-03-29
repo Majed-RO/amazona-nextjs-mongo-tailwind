@@ -3,7 +3,7 @@
 import { createContext, useReducer } from 'react';
 import { Product } from './interfaces';
 
-interface CartItem extends Product {
+export interface CartItem extends Product {
 	quantity: number;
 }
 
