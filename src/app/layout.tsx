@@ -1,6 +1,10 @@
 import NavBar from '@/components/NavBar';
-import { StoreProvider } from '@/utils/store';
+
 import './globals.css';
+import 'react-toastify/dist/ReactToastify.css';
+
+import { Providers } from './providers';
+import Toast from '@/components/toastContainer';
 
 export const metadata = {
 	title: 'Amazona',
@@ -15,8 +19,10 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body>
+				<Toast />
+
 				<div className="flex min-h-screen flex-col justify-between">
-					<StoreProvider>
+					<Providers>
 						<header className="">
 							<NavBar />
 						</header>
@@ -29,7 +35,7 @@ export default function RootLayout({
 								2022 Amazona
 							</p>
 						</footer>
-					</StoreProvider>
+					</Providers>
 				</div>
 			</body>
 		</html>

@@ -14,7 +14,7 @@ interface InitialStateType {
 
 interface Action {
 	type: string;
-	payload: CartItem;
+	payload?: CartItem;
 }
 
 const initialState = {
@@ -33,7 +33,7 @@ function reducer(state: InitialStateType, action: Action) {
 		case 'CART_ADD_ITEM': {
 			const newItem = action.payload;
 			const existItem = state.cart.cartItems.find(
-				item => item.slug === newItem.slug
+				item => item.slug === newItem?.slug
 			);
 
 			const cartItems = existItem
@@ -52,13 +52,22 @@ function reducer(state: InitialStateType, action: Action) {
 
 		case 'CART_REMOVE_ITEM': {
 			const cartItems = state.cart.cartItems.filter(
-				item => item.slug !== action.payload.slug
+				item => item.slug !== action?.payload?.slug
 			);
-      Cookies.set(
+			Cookies.set(
 				'cart',
 				JSON.stringify({ ...state.cart, cartItems })
 			);
 			return { ...state, cart: { ...state.cart, cartItems } };
+		}
+
+		case 'CART_RESET': {
+			return {
+				...state,
+				cartItems: [],
+				shippingAddress: { location: {} },
+				paymentMethod: ''
+			};
 		}
 		default:
 			return state;

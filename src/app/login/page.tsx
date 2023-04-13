@@ -1,9 +1,15 @@
 'use client';
+
 import Link from 'next/link';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+
+import { signIn, useSession } from 'next-auth/react';
+import { getError } from '@/utils/error';
+import { toast } from 'react-toastify';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 interface FormData {
 	email: string;
@@ -24,23 +30,52 @@ const schema = yup
 	.required();
 
 export default function LoginScreen() {
+	const { data: session } = useSession();
+
+	const pathname = usePathname();
+	// const { redirect } = useSearchParams();
+
+	const router = useRouter();
+
+	useEffect(() => {
+		if (session?.user) {
+			router.push('/');
+		}
+	}, [router, session]);
+
 	const {
 		register,
 		handleSubmit,
 		formState: { errors }
 	} = useForm<FormData>({ resolver: yupResolver(schema) });
 
-	const submitHandler = handleSubmit(data => {
+	const submitHandler = async (data: {
+		email: string;
+		password: string;
+	}) => {
 		console.log('data', data);
 		const { email, password } = data;
-	});
+
+		try {
+			const result = await signIn('credentials', {
+				redirect: false,
+				email,
+				password
+			});
+			toast.error(result?.error);
+		} catch (error: any) {
+			toast.error(getError(error));
+		}
+	};
+
 	return (
 		<form
 			action=""
 			className="mx-auto max-w-screen-md"
-			onSubmit={submitHandler}
+			onSubmit={handleSubmit(submitHandler)}
 		>
 			<h1 className="mb-4 text-xl">Login</h1>
+
 			<div className="mb-4">
 				<label htmlFor="email">Email</label>
 				<input
@@ -63,7 +98,6 @@ export default function LoginScreen() {
 					className="w-full"
 					id="password"
 					autoComplete="new-password"
-
 				/>
 				<div className="text-red-500">
 					{errors.password?.message}
