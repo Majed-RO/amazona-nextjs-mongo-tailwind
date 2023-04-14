@@ -17,7 +17,11 @@ interface ShippingAddress {
 }
 
 interface InitialStateType {
-	cart: { cartItems: CartItem[]; shippingAddress: any };
+	cart: {
+		cartItems: CartItem[];
+		shippingAddress: ShippingAddress;
+		paymentMethod: string;
+	};
 }
 
 interface Action {
@@ -28,7 +32,7 @@ interface Action {
 const initialState = {
 	cart: Cookies.get('cart')
 		? JSON.parse(Cookies.get('cart') ?? '')
-		: { cartItems: [], shippingAddress: {} }
+		: { cartItems: [], shippingAddress: {}, paymentMethod: '' }
 };
 
 export const Store = createContext<{
@@ -91,10 +95,20 @@ function reducer(state: InitialStateType, action: Action) {
 				}
 			};
 		}
+		case 'SAVE_PAYMENT_METHOD': {
+			return {
+				...state,
+				cart: {
+					...state.cart,
+					paymentMethod: action.payload
+				}
+			};
+		}
 		default:
 			return state;
 	}
 }
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const value = { state, dispatch };

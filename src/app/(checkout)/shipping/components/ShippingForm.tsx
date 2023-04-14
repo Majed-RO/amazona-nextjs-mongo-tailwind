@@ -8,9 +8,6 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useContext, useEffect } from 'react';
 
-// import { redirect } from 'next/navigation';
-// import { useSession } from 'next-auth/react';
-
 interface FormData {
 	fullName: string;
 	address: string;
@@ -33,8 +30,6 @@ const schema = yup
 	.required();
 
 export default function ShippingForm() {
-	console.log('ShippingForm');
-
 	const { state, dispatch } = useContext(Store);
 
 	const { cart } = state;
