@@ -8,13 +8,13 @@ import { Menu } from '@headlessui/react';
 import Cookies from 'js-cookie';
 
 export default function NavBar() {
+	console.log('navbar page');
+
 	const { status, data: session } = useSession();
 
 	const { state, dispatch } = useContext(Store);
 	const { cart } = state;
 	const [cartItemsCount, setCartItemsCount] = useState(0);
-
-	console.log('session', session);
 
 	useEffect(() => {
 		setCartItemsCount(
@@ -23,9 +23,12 @@ export default function NavBar() {
 	}, [cart.cartItems]);
 
 	const logoutClickHandler = () => {
+		console.log('in logout');
 		Cookies.remove('cart');
 		dispatch({ type: 'CART_RESET' });
 		signOut({ callbackUrl: '/login' });
+
+		console.log('session after signout', session);
 	};
 
 	return (
@@ -81,7 +84,7 @@ export default function NavBar() {
 								</Link>
 							</Menu.Item>
 							<Menu.Item>
-								<Link
+								<a
 									href={
 										'#'
 									}
@@ -91,7 +94,7 @@ export default function NavBar() {
 									}
 								>
 									Logout
-								</Link>
+								</a>
 							</Menu.Item>
 						</Menu.Items>
 					</Menu>

@@ -8,19 +8,27 @@ export interface CartItem extends Product {
 	quantity: number;
 }
 
+interface ShippingAddress {
+	fullName: string;
+	address: string;
+	city: string;
+	postalCode: string;
+	country: string;
+}
+
 interface InitialStateType {
-	cart: { cartItems: CartItem[] };
+	cart: { cartItems: CartItem[]; shippingAddress: any };
 }
 
 interface Action {
 	type: string;
-	payload?: CartItem;
+	payload?: CartItem | any;
 }
 
 const initialState = {
 	cart: Cookies.get('cart')
 		? JSON.parse(Cookies.get('cart') ?? '')
-		: { cartItems: [] }
+		: { cartItems: [], shippingAddress: {} }
 };
 
 export const Store = createContext<{
@@ -64,9 +72,23 @@ function reducer(state: InitialStateType, action: Action) {
 		case 'CART_RESET': {
 			return {
 				...state,
-				cartItems: [],
-				shippingAddress: { location: {} },
-				paymentMethod: ''
+				cart: {
+					cartItems: [],
+					shippingAddress: { location: {} },
+					paymentMethod: ''
+				}
+			};
+		}
+		case 'SAVE_SHIPPING_ADDRESS': {
+			return {
+				...state,
+				cart: {
+					...state.cart,
+					shippingAddress: {
+						...state.cart.shippingAddress,
+						...action.payload
+					}
+				}
 			};
 		}
 		default:

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -9,7 +9,7 @@ import * as yup from 'yup';
 import { signIn, useSession } from 'next-auth/react';
 import { getError } from '@/utils/error';
 import { toast } from 'react-toastify';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface FormData {
 	email: string;
@@ -32,16 +32,16 @@ const schema = yup
 export default function LoginScreen() {
 	const { data: session } = useSession();
 
-	const pathname = usePathname();
-	// const { redirect } = useSearchParams();
+	const searchParams = useSearchParams();
+	const redirect = searchParams.get('redirect');
 
 	const router = useRouter();
 
 	useEffect(() => {
 		if (session?.user) {
-			router.push('/');
+			router.push(redirect || '/');
 		}
-	}, [router, session]);
+	}, [router, session, redirect]);
 
 	const {
 		register,
@@ -64,6 +64,7 @@ export default function LoginScreen() {
 			});
 			toast.error(result?.error);
 		} catch (error: any) {
+			console.log('error', error);
 			toast.error(getError(error));
 		}
 	};

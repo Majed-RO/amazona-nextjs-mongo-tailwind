@@ -11,7 +11,7 @@ export const metadata = {
 	description: 'An E-commerce website'
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children
 }: {
 	children: React.ReactNode;
@@ -41,3 +41,18 @@ export default function RootLayout({
 		</html>
 	);
 }
+
+/* function Auth({children}) {
+  const router = useRouter();
+  const {status} = useSession({
+    required: true,
+    onUnauthenticated(){
+      router.push('/unauthorized?message=login required')
+    }
+  })
+
+  if(status === 'loading') {
+    return <div>Loading...</div>
+  }
+  return children
+} */
