@@ -10,8 +10,6 @@ import Cookies from 'js-cookie';
 export default function NavBar() {
 	const { status, data: session } = useSession();
 
-	console.log('session in navbar', session);
-
 	const { state, dispatch } = useContext(Store);
 	const { cart } = state;
 	const [cartItemsCount, setCartItemsCount] = useState(0);

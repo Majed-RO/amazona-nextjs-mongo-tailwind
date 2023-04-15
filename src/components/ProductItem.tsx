@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
+import AddToCart from '@/app/product/[slug]/components/AddToCart';
 import { Product } from '@/utils/interfaces';
 import Link from 'next/link';
-
 
 export default function ProductItem({ product }: { product: Product }) {
 	return (
@@ -22,12 +22,7 @@ export default function ProductItem({ product }: { product: Product }) {
 				</Link>
 				<p className="mb-2">{product.brand}</p>
 				<p>${product.price}</p>
-				<button
-					className="primary-button"
-					type="button"
-				>
-					Add to cart
-				</button>
+				<AddToCart product={product} redirect={false} />
 			</div>
 		</div>
 	);

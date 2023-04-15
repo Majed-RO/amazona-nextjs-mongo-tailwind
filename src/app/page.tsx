@@ -1,10 +1,19 @@
 import ProductItem from '@/components/ProductItem';
-import data from '@/utils/data';
+import Product from '@/models/Product';
+import db from '@/utils/db';
 
-export default function Home() {
+const getProducts = async () => {
+	await db.connect();
+	const products = await Product.find().lean();
+	return products.map(db.convertDoCToObj);
+};
+
+export default async function Home() {
+	const products = await getProducts();
+	console.log('products', products);
 	return (
 		<div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
-			{data.products.map(product => (
+			{products.map(product => (
 				<ProductItem
 					product={product}
 					key={product.slug}

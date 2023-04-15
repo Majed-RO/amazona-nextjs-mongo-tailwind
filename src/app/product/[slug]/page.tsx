@@ -1,24 +1,23 @@
-import data from '@/utils/data';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import AddToCart from './components/AddToCart';
+import db from '@/utils/db';
+import Product from '@/models/Product';
 
-// The `fetch` response is cached and reused between both functions
-// below, resulting in a single API request. If you cannot use `fetch`
-// directly, you can use `cache`. Learn more:
-// https://beta.nextjs.org/docs/data-fetching/caching
 async function getProduct(slug: string) {
-	// const res = await fetch(`https://.../api/products/${slug}`);
-	// return res.json();
-	const product = data.products.find(x => x.slug === slug);
+	db.connect();
+
+	const product = await Product.findOne({
+		slug
+	}).lean();
 
 	if (!product) {
 		return notFound();
 	}
 
-	return product;
+	return db.convertDoCToObj(product);
 }
 
 export async function generateMetadata({

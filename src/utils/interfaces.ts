@@ -1,4 +1,5 @@
 export interface Product {
+	_id: string;
 	name: string;
 	slug: string;
 	category: string;
@@ -9,4 +10,6 @@ export interface Product {
 	numReviews: number;
 	countInStock: number;
 	description: string;
+	updatedAt: string;
+	createdAt: string;
 }

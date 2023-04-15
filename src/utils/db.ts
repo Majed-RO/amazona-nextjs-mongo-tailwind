@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { Product } from './interfaces';
 
 const connection: any = {};
 
@@ -36,6 +37,14 @@ async function disconnect() {
 	}
 }
 
-const db = { connect, disconnect };
+function convertDoCToObj(doc: Product) {
+	doc._id = doc._id.toString();
+	doc.createdAt = doc.createdAt.toString();
+	doc.updatedAt = doc.updatedAt.toString();
+
+	return doc;
+}
+
+const db = { connect, disconnect, convertDoCToObj };
 
 export default db;

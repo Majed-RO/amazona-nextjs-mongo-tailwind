@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useContext, useEffect, useState } from 'react';
 import { XCircleIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 // import dynamic from 'next/dynamic';
 
 function CartScreen() {
@@ -17,24 +19,33 @@ function CartScreen() {
 		cart: { cartItems }
 	} = state;
 
-  const [updatedCartItems, setUpdatedCartItems] = useState<CartItem[]>([]);
+	const [updatedCartItems, setUpdatedCartItems] = useState<CartItem[]>(
+		[]
+	);
 
 	const removeItemHandler = (item: CartItem) => {
 		dispatch({ type: 'CART_REMOVE_ITEM', payload: item });
 	};
 
-	const updateCartHandler = (item: CartItem, qty: string) => {
+	const updateCartHandler = async (item: CartItem, qty: string) => {
 		const quantity = Number(qty);
+		const { data } = await axios.get(`/api/products/${item._id}`);
+
+		if (data.countInStock < quantity) {
+			return toast.error('Sorry.Product is out of stock!');
+		}
+
 		dispatch({
 			type: 'CART_ADD_ITEM',
 			payload: { ...item, quantity }
 		});
+		toast.success('Product updated in the cart');
 	};
 
-  /* to solve hydration errors */
-  useEffect(() => {
-    setUpdatedCartItems(cartItems)
-  }, [cartItems]);
+	/* to solve hydration errors */
+	useEffect(() => {
+		setUpdatedCartItems(cartItems);
+	}, [cartItems]);
 
 	return (
 		<div>
