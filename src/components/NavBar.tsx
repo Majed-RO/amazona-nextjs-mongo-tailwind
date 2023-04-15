@@ -8,9 +8,9 @@ import { Menu } from '@headlessui/react';
 import Cookies from 'js-cookie';
 
 export default function NavBar() {
-	console.log('navbar page');
-
 	const { status, data: session } = useSession();
+
+	console.log('session in navbar', session);
 
 	const { state, dispatch } = useContext(Store);
 	const { cart } = state;
@@ -23,12 +23,9 @@ export default function NavBar() {
 	}, [cart.cartItems]);
 
 	const logoutClickHandler = () => {
-		console.log('in logout');
 		Cookies.remove('cart');
 		dispatch({ type: 'CART_RESET' });
 		signOut({ callbackUrl: '/login' });
-
-		console.log('session after signout', session);
 	};
 
 	return (

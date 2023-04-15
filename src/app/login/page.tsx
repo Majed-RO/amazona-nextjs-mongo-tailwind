@@ -53,7 +53,6 @@ export default function LoginScreen() {
 		email: string;
 		password: string;
 	}) => {
-		console.log('data', data);
 		const { email, password } = data;
 
 		try {
@@ -64,7 +63,6 @@ export default function LoginScreen() {
 			});
 			toast.error(result?.error);
 		} catch (error: any) {
-			console.log('error', error);
 			toast.error(getError(error));
 		}
 	};
