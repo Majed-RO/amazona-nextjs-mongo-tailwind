@@ -16,7 +16,7 @@ interface ShippingAddress {
 	country: string;
 }
 
-interface InitialStateType {
+export interface InitialStateType {
 	cart: {
 		cartItems: CartItem[];
 		shippingAddress: ShippingAddress;
@@ -101,6 +101,15 @@ function reducer(state: InitialStateType, action: Action) {
 				cart: {
 					...state.cart,
 					paymentMethod: action.payload
+				}
+			};
+		}
+		case 'CART_CLEAR_ITEMS': {
+			return {
+				...state,
+				cart: {
+					...state.cart,
+					cartItems: []
 				}
 			};
 		}
