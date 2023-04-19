@@ -1,83 +1,97 @@
 'use client';
 
 import { getError } from '@/utils/error';
-import { Store } from '@/utils/store';
 import axios from 'axios';
-import Cookies from 'js-cookie';
+import { useEffect, useReducer } from 'react';
+
+import { Order, OrderItem } from '@/utils/interfaces';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import React, { useContext, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
 
-export default function OrderDetails() {
-	const router = useRouter();
-	const [loading, setLoading] = useState(false);
+interface State {
+	loading: boolean;
+	order: Order;
+	error: string;
+}
 
-	const { state, dispatch } = useContext(Store);
-	const { cart } = state;
-	const { cartItems, shippingAddress, paymentMethod } = cart;
+interface Action {
+	type: string;
+	payload?: any;
+}
 
-	const round2 = (num: number) =>
-		Math.round(num * 100 + Number.EPSILON) / 100;
+function reducer(state: State, action: Action) {
+	switch (action.type) {
+		case 'FETCH_REQUEST':
+			return { ...state, loading: true, error: '' };
+		case 'FETCH_SUCCESS':
+			return {
+				...state,
+				loading: false,
+				error: '',
+				order: action.payload
+			};
+		case 'FETCH_FAIL':
+			return {
+				...state,
+				loading: false,
+				error: action.payload
+			};
 
-	// a = accumulator, c = current item
-	const itemsPrice = round2(
-		cartItems.reduce((a, c) => a + c.quantity * c.price, 0)
-	); // 123.3456 => 123.35
+		default:
+			return state;
+	}
+}
 
-	const shippingPrice = itemsPrice > 200 ? 0 : 15;
-
-	const taxPrice = round2(itemsPrice * 0.15);
-
-	const totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
+export default function OrderDetails({ orderId }: { orderId: string }) {
+	const [{ loading, error, order }, dispatch] = useReducer(reducer, {
+		loading: true,
+		order: {},
+		error: ''
+	});
 
 	useEffect(() => {
-		if (!paymentMethod) {
-			router.push('/payment');
+		const fetchOrder = async () => {
+			try {
+				dispatch({ type: 'FETCH_REQUEST' });
+				const { data } = await axios.get(
+					`/api/orders/${orderId}`
+				);
+				dispatch({
+					type: 'FETCH_SUCCESS',
+					payload: data
+				});
+			} catch (error: any) {
+				dispatch({
+					type: 'FETCH_FAIL',
+					payload: getError(error)
+				});
+			}
+		};
+		if (!order._id || (order._id && order._id !== orderId)) {
+			fetchOrder();
 		}
-	}, [paymentMethod, router]);
+	}, [order, orderId]);
 
-	const placeOrderHandler = async () => {
-		try {
-			setLoading(true);
-
-			const { data } = await axios.post('/api/orders', {
-				orderItems: cartItems,
-				shippingAddress,
-				paymentMethod,
-				itemsPrice,
-				shippingPrice,
-				taxPrice,
-				totalPrice
-			});
-
-			setLoading(false);
-
-			dispatch({ type: 'CART_CLEAR_ITEMS' });
-
-			Cookies.set(
-				'cart',
-				JSON.stringify({
-					...cart,
-					cartItems: []
-				})
-			);
-
-			router.push(`/order/${data._id}`);
-		} catch (error: any) {
-			setLoading(false);
-			toast.error(getError(error));
-		}
-	};
+	const {
+		shippingAddress,
+		paymentMethod,
+		orderItems,
+		itemsPrice,
+		taxPrice,
+		shippingPrice,
+		totalPrice,
+		isPaid,
+		paidAt,
+		isDelivered,
+		deliveredAt
+	} = order;
 
 	return (
 		<div>
-			{cartItems.length === 0 ? (
-				<div>
-					Cart is empty.{' '}
-					<Link href={'/'}>Go Shipping</Link>
-				</div>
+			{loading ? (
+				<div>Loading...</div>
+			) : error ? (
+				<div className="alert-error">{error}</div>
 			) : (
 				<div className="grid md:grid-cols-4 md:gap-5">
 					<div className="overflow-x-auto md:col-span-3">
@@ -93,7 +107,7 @@ export default function OrderDetails() {
 								{
 									shippingAddress.address
 								}
-								,
+								,{' '}
 								{
 									shippingAddress.city
 								}
@@ -101,21 +115,27 @@ export default function OrderDetails() {
 								{
 									shippingAddress.postalCode
 								}
-								,
+								,{' '}
 								{
 									shippingAddress.country
 								}
 							</div>
-							<div>
-								<Link
-									href={
-										'/shipping'
+							{isDelivered ? (
+								<div className="alert-success">
+									Delivered
+									at{' '}
+									{
+										deliveredAt
 									}
-								>
-									Edit
-								</Link>
-							</div>
+								</div>
+							) : (
+								<div className="alert-error">
+									Not
+									delivered
+								</div>
+							)}
 						</div>
+
 						<div className="card p-5">
 							<h2 className="mb-2 text-lg">
 								Payment Method
@@ -123,20 +143,23 @@ export default function OrderDetails() {
 							<div>
 								{paymentMethod}
 							</div>
-							<div>
-								<Link
-									href={
-										'/payment'
-									}
-								>
-									Edit
-								</Link>
-							</div>
+							{isPaid ? (
+								<div className="alert-success">
+									Paid at{' '}
+									{paidAt}
+								</div>
+							) : (
+								<div className="alert-error">
+									Not paid
+								</div>
+							)}
 						</div>
+						{/* order items */}
 						<div className="card overflow-x-auto p-5">
 							<h2 className="mb-2 text-lg">
-								Order items
+								Order Items
 							</h2>
+
 							<table className="min-w-full">
 								<thead className="border-b">
 									<tr>
@@ -155,8 +178,10 @@ export default function OrderDetails() {
 									</tr>
 								</thead>
 								<tbody>
-									{cartItems.map(
-										item => (
+									{orderItems.map(
+										(
+											item: OrderItem
+										) => (
 											<tr
 												key={
 													item._id
@@ -209,17 +234,9 @@ export default function OrderDetails() {
 									)}
 								</tbody>
 							</table>
-							<div>
-								<Link
-									href={
-										'/cart'
-									}
-								>
-									Edit
-								</Link>
-							</div>
 						</div>
 					</div>
+
 					<div>
 						<div className="card p-5">
 							<h2 className="mb-2 text-lg">
@@ -277,21 +294,6 @@ export default function OrderDetails() {
 											}
 										</div>
 									</div>
-								</li>
-								<li>
-									<button
-										className="primary-button w-full"
-										disabled={
-											loading
-										}
-										onClick={
-											placeOrderHandler
-										}
-									>
-										{loading
-											? 'Loading...'
-											: 'Place Order'}
-									</button>
 								</li>
 							</ul>
 						</div>

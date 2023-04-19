@@ -13,3 +13,32 @@ export interface Product {
 	updatedAt: string;
 	createdAt: string;
 }
+
+export interface OrderItem {
+	_id: string;
+	slug: string;
+	name: string;
+	quantity: number;
+	image: string;
+	price: number;
+}
+
+export interface Order {
+	orderItems: OrderItem[];
+	shippingAddress: {
+		fullName: string;
+		address: string;
+		city: string;
+		postalCode: string;
+		country: string;
+	};
+	paymentMethod: string;
+	itemsPrice: number;
+	shippingPrice: number;
+	taxPrice: number;
+	totalPrice: number;
+	isPaid: boolean;
+	isDelivered: boolean;
+	paidAt: Date;
+	deliveredAt: Date;
+}
