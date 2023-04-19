@@ -14,7 +14,6 @@ export async function POST(request: Request, response: Response) {
 		});
 	}
 
-	// console.log("Session", JSON.stringify(session, null, 2))
 	const { user } = session;
 
 	const requestBody = await request.json();

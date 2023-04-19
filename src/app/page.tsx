@@ -10,7 +10,6 @@ const getProducts = async () => {
 
 export default async function Home() {
 	const products = await getProducts();
-	console.log('products', products);
 	return (
 		<div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
 			{products.map(product => (

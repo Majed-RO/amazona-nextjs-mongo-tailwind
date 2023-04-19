@@ -23,6 +23,7 @@ export default function NavBar() {
 	const logoutClickHandler = () => {
 		Cookies.remove('cart');
 		dispatch({ type: 'CART_RESET' });
+
 		signOut({ callbackUrl: '/login' });
 	};
 

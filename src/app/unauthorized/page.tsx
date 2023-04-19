@@ -1,17 +1,16 @@
-'use client';
-
-import { useSearchParams } from 'next/navigation';
 import React from 'react';
 
-export default function Unauthorized() {
-	const searchParams = useSearchParams();
-	const message = searchParams.get('message');
+export default function Unauthorized({
+	searchParams
+}: {
+	searchParams: { message: string };
+}) {
 	return (
 		<div>
 			<h1>Access Denied</h1>
-			{message && (
+			{searchParams?.message && (
 				<div className="mb-4 text-red-500">
-					{message}
+					{searchParams?.message}
 				</div>
 			)}
 		</div>
