@@ -24,6 +24,7 @@ export interface OrderItem {
 }
 
 export interface Order {
+	_id: string;
 	orderItems: OrderItem[];
 	shippingAddress: {
 		fullName: string;
@@ -41,4 +42,6 @@ export interface Order {
 	isDelivered: boolean;
 	paidAt: Date;
 	deliveredAt: Date;
+	updatedAt: string;
+	createdAt: string;
 }

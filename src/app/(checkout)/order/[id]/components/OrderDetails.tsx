@@ -7,11 +7,26 @@ import { useEffect, useReducer } from 'react';
 import { Order, OrderItem } from '@/utils/interfaces';
 import Image from 'next/image';
 import Link from 'next/link';
+import {
+	PayPalButtons,
+	SCRIPT_LOADING_STATE,
+	usePayPalScriptReducer
+} from '@paypal/react-paypal-js';
+import { toast } from 'react-toastify';
+import {
+	OnApproveData,
+	OnApproveActions,
+	CreateOrderData,
+	CreateOrderActions
+} from '@paypal/paypal-js/types/components/buttons';
 
 interface State {
 	loading: boolean;
 	order: Order;
 	error: string;
+	loadingPay?: boolean;
+	successPay?: boolean;
+	errorPay?: string;
 }
 
 interface Action {
@@ -37,17 +52,48 @@ function reducer(state: State, action: Action) {
 				error: action.payload
 			};
 
+		case 'PAY_REQUEST':
+			return {
+				...state,
+				loadingPay: true
+			};
+
+		case 'PAY_SUCCESS':
+			return {
+				...state,
+				loadingPay: false,
+				successPay: true
+			};
+
+		case 'PAY_FAIL':
+			return {
+				...state,
+				loadingPay: false,
+				errorPay: action.payload
+			};
+
+		case 'PAY_RESET':
+			return {
+				...state,
+				loadingPay: false,
+				successPay: false,
+				errorPay: ''
+			};
+
 		default:
 			return state;
 	}
 }
 
 export default function OrderDetails({ orderId }: { orderId: string }) {
-	const [{ loading, error, order }, dispatch] = useReducer(reducer, {
-		loading: true,
-		order: {},
-		error: ''
-	});
+	const [{ loading, error, order, successPay, loadingPay }, dispatch] =
+		useReducer(reducer, {
+			loading: true,
+			order: {},
+			error: ''
+		});
+
+	const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
 
 	useEffect(() => {
 		const fetchOrder = async () => {
@@ -67,10 +113,38 @@ export default function OrderDetails({ orderId }: { orderId: string }) {
 				});
 			}
 		};
-		if (!order._id || (order._id && order._id !== orderId)) {
+		if (
+			!order._id ||
+			successPay ||
+			(order._id && order._id !== orderId)
+		) {
 			fetchOrder();
+
+			if (successPay) {
+				dispatch({ type: 'PAY_RESET' });
+			}
+		} else {
+			const loadPaypalScript = async () => {
+				const { data: clientId } = await axios.get(
+					'/api/keys/paypal'
+				);
+
+				paypalDispatch({
+					type: 'resetOptions',
+					value: {
+						'client-id': clientId,
+						currency: 'USD'
+					}
+				});
+				paypalDispatch({
+					type: 'setLoadingStatus',
+					value: SCRIPT_LOADING_STATE.PENDING
+				});
+			};
+
+			loadPaypalScript();
 		}
-	}, [order, orderId]);
+	}, [order, orderId, paypalDispatch, successPay]);
 
 	const {
 		shippingAddress,
@@ -85,6 +159,59 @@ export default function OrderDetails({ orderId }: { orderId: string }) {
 		isDelivered,
 		deliveredAt
 	} = order;
+
+	async function createOrder(
+		data: CreateOrderData,
+		actions: CreateOrderActions
+	) {
+		return actions.order
+			.create({
+				purchase_units: [
+					{
+						amount: { value: totalPrice }
+					}
+				]
+			})
+			.then((orderID: string) => {
+				return orderID;
+			});
+	}
+
+	async function onApprove(
+		data: OnApproveData,
+		actions: OnApproveActions
+	) {
+		// to complete the payment
+		return actions?.order?.capture().then(async function (details) {
+			try {
+				dispatch({ type: 'PAY_REQUEST' });
+
+				// PUT is used to send data to a server to create/update a resource.
+				// calling the same PUT request multiple times will always produce the same result. In contrast, calling a POST request repeatedly have side effects of creating the same resource multiple times.
+				const { data } = await axios.put(
+					`/api/orders/${order._id}/pay`,
+					details
+				);
+
+				dispatch({
+					type: 'PAY_SUCCESS',
+					payload: data
+				});
+
+				toast.success('Order is paid successfully');
+			} catch (error: any) {
+				dispatch({
+					type: 'PAY_FAIL',
+					payload: getError(error)
+				});
+				toast.error(getError(error));
+			}
+		});
+	}
+
+	function onError(err: any) {
+		toast.error(getError(err));
+	}
 
 	return (
 		<div>
@@ -295,6 +422,34 @@ export default function OrderDetails({ orderId }: { orderId: string }) {
 										</div>
 									</div>
 								</li>
+								{!isPaid && (
+									<li>
+										{isPending ? (
+											<div>
+												Loading...
+											</div>
+										) : (
+											<div className="w-full">
+												<PayPalButtons
+													createOrder={
+														createOrder
+													}
+													onApprove={
+														onApprove
+													}
+													onError={
+														onError
+													}
+												></PayPalButtons>
+											</div>
+										)}
+									</li>
+								)}
+								{loadingPay && (
+									<div>
+										Loading...
+									</div>
+								)}
 							</ul>
 						</div>
 					</div>

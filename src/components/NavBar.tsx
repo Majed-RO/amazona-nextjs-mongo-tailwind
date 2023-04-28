@@ -71,7 +71,7 @@ export default function NavBar() {
 							<Menu.Item>
 								<Link
 									href={
-										'/profile'
+										'/order-history'
 									}
 									className="dropdown-link"
 								>
