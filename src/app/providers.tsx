@@ -11,13 +11,12 @@ type Props = {
 };
 
 export const Providers = ({ children }: Props) => {
-	console.log('in providers');
 	const [paypalInitialOptions, setPaypalInitialOptions] = useState({
 		'client-id': '',
 		currency: 'USD'
 	});
 
-	useEffect(() => {
+	/* useEffect(() => {
 		axios.get('/api/keys/paypal')
 			.then(function (response) {
 				setPaypalInitialOptions(prevState => {
@@ -30,7 +29,7 @@ export const Providers = ({ children }: Props) => {
 			.catch(error => {
 				console.log('error', error);
 			});
-	}, []);
+	}, []); */
 
 	return (
 		<SessionProvider>
