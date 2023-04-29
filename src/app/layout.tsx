@@ -7,8 +7,12 @@ import { Providers } from './providers';
 import Toast from '@/components/toastContainer';
 
 export const metadata = {
-	title: 'Amazona',
-	description: 'An E-commerce website'
+	title: {
+		default: 'Amazona',
+		template: '%s | Amazona'
+	},
+	description: 'An E-commerce website',
+	keywords: ['E-commerce', 'Amazona']
 };
 
 export default async function RootLayout({

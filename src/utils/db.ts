@@ -1,23 +1,24 @@
 import mongoose from 'mongoose';
 import { Product } from './interfaces';
 
-const connection: any = {};
+let connection: { isConnected: any } = { isConnected: 0 };
 
 /* https://stackoverflow.com/questions/75697312/import-mongoose-lib-in-api-directory-in-next-js-13-2-app-directory-gives-error
  */
 async function connect() {
-	if (connection.isConnected) {
+	if (connection?.isConnected) {
 		console.log('already connected');
 		return;
 	}
 
-	if (mongoose.connections.length > 0) {
+	if (mongoose?.connections.length > 0) {
 		connection.isConnected = mongoose.connections[0].readyState;
 
-		if (connection.isConnected === 1) {
+		if (connection?.isConnected === 1) {
 			console.log('use previous connection');
 			return;
 		}
+
 		await mongoose.disconnect();
 	}
 
@@ -26,11 +27,26 @@ async function connect() {
 	connection.isConnected = db.connections[0].readyState;
 }
 
+function isConnected() {
+	return connection?.isConnected;
+}
+
 async function disconnect() {
-	if (connection.isConnected) {
+	if (connection.isConnected === 1) {
+		await mongoose.disconnect();
+		connection.isConnected = false;
+		console.log('disconnected');
+	} else {
+		console.log(' not disconnected');
+	}
+}
+
+async function disconnectDEP() {
+	if (connection?.isConnected) {
 		if (`${process.env.NODE_ENV}` === 'production') {
 			await mongoose.disconnect();
 			connection.isConnected = false;
+			console.log('disconnected');
 		} else {
 			console.log('not disconnected');
 		}
@@ -45,6 +61,6 @@ function convertDoCToObj(doc: Product) {
 	return doc;
 }
 
-const db = { connect, disconnect, convertDoCToObj };
+const db = { connect, disconnect, convertDoCToObj, isConnected };
 
 export default db;

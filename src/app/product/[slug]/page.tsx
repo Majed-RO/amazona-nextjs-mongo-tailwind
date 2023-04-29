@@ -5,29 +5,44 @@ import { notFound } from 'next/navigation';
 import AddToCart from './components/AddToCart';
 import db from '@/utils/db';
 import Product from '@/models/Product';
-
-async function getProduct(slug: string) {
-	db.connect();
-
-	const product = await Product.findOne({
-		slug
-	}).lean();
-
-	if (!product) {
-		return notFound();
-	}
-
-	return db.convertDoCToObj(product);
-}
+import { cache } from 'react';
 
 export async function generateMetadata({
 	params
 }: {
 	params: { slug: string };
 }): Promise<Metadata> {
-	const product = await getProduct(params.slug);
-	return { title: product.name };
+	const { slug } = params;
+
+	const product = await getProduct(slug);
+
+	return { title: product?.name };
 }
+/* 
+https://beta.nextjs.org/docs/data-fetching/caching
+*/
+const getProduct = cache(async (slug: string, ignoreFound = false) => {
+	await db.connect();
+
+	let product = null;
+	try {
+		product = await Product.findOne({
+			slug
+		}).lean();
+	} catch (error) {
+		console.log('error2', error);
+	}
+
+	await db.disconnect();
+
+	// if (!product && !ignoreFound) {
+	if (!product) {
+		return notFound();
+	}
+
+	// return db.convertDoCToObj(product);
+	return product ? db.convertDoCToObj(product) : product;
+});
 
 export default async function ProductScreen({
 	params
@@ -44,8 +59,8 @@ export default async function ProductScreen({
 			<div className="grid md:grid-cols-4 md:gap-3">
 				<div className="md:col-span-2">
 					<Image
-						src={product.image}
-						alt={product.name}
+						src={product?.image}
+						alt={product?.name}
 						width={640}
 						height={640}
 					/>
@@ -54,22 +69,22 @@ export default async function ProductScreen({
 					<ul>
 						<li>
 							<h1 className="text-lg">
-								{product.name}
+								{product?.name}
 							</h1>
 						</li>
 						<li>
 							Category:{' '}
-							{product.category}
+							{product?.category}
 						</li>
-						<li>Brand: {product.brand}</li>
+						<li>Brand: {product?.brand}</li>
 						<li>
-							{product.rating} of{' '}
-							{product.numReviews}{' '}
+							{product?.rating} of{' '}
+							{product?.numReviews}{' '}
 							reviews
 						</li>
 						<li>
 							Description:{' '}
-							{product.description}
+							{product?.description}
 						</li>
 					</ul>
 				</div>
@@ -78,7 +93,8 @@ export default async function ProductScreen({
 						<div className="mb-2 flex justify-between">
 							<div>Price</div>
 							<div>
-								${product.price}
+								$
+								{product?.price}
 							</div>
 						</div>
 						<div className="mb-2 flex justify-between">
